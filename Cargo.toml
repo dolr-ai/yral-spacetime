@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "dedup-index",
+]
+resolver = "2"
+
+[workspace.dependencies]
+spacetimedb = "1.1.2"
+log = "0.4"
+spacetimedb-sdk = "1.1.1"
+
