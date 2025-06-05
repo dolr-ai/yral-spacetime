@@ -338,6 +338,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "dedup-index"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "spacetimedb",
+ "spacetimedb-sdk",
+]
+
+[[package]]
 name = "deranged"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1278,15 +1287,6 @@ checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "spacetime-module"
-version = "0.1.0"
-dependencies = [
- "log",
- "spacetimedb",
- "spacetimedb-sdk",
 ]
 
 [[package]]
