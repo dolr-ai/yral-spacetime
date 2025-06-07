@@ -8,6 +8,7 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 #[sats(crate = __lib)]
 pub struct UniqueHash {
     pub hash: String,
+    pub video_id: String,
 }
 
 impl __sdk::InModule for UniqueHash {
