@@ -6,10 +6,14 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 pub mod add_reducer;
 pub mod dedup_index_table;
+pub mod unique_hash_table;
+pub mod unique_hash_type;
 pub mod video_hash_type;
 
 pub use add_reducer::{add, set_flags_for_add, AddCallbackId};
 pub use dedup_index_table::*;
+pub use unique_hash_table::*;
+pub use unique_hash_type::UniqueHash;
 pub use video_hash_type::VideoHash;
 
 #[derive(Clone, PartialEq, Debug)]
@@ -60,6 +64,7 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
 #[doc(hidden)]
 pub struct DbUpdate {
     dedup_index: __sdk::TableUpdate<VideoHash>,
+    unique_hash: __sdk::TableUpdate<UniqueHash>,
 }
 
 impl TryFrom<__ws::DatabaseUpdate<__ws::BsatnFormat>> for DbUpdate {
@@ -70,6 +75,9 @@ impl TryFrom<__ws::DatabaseUpdate<__ws::BsatnFormat>> for DbUpdate {
             match &table_update.table_name[..] {
                 "dedup_index" => {
                     db_update.dedup_index = dedup_index_table::parse_table_update(table_update)?
+                }
+                "unique_hash" => {
+                    db_update.unique_hash = unique_hash_table::parse_table_update(table_update)?
                 }
 
                 unknown => {
@@ -98,6 +106,9 @@ impl __sdk::DbUpdate for DbUpdate {
         let mut diff = AppliedDiff::default();
 
         diff.dedup_index = cache.apply_diff_to_table::<VideoHash>("dedup_index", &self.dedup_index);
+        diff.unique_hash = cache
+            .apply_diff_to_table::<UniqueHash>("unique_hash", &self.unique_hash)
+            .with_updates_by_pk(|row| &row.hash);
 
         diff
     }
@@ -108,6 +119,7 @@ impl __sdk::DbUpdate for DbUpdate {
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
     dedup_index: __sdk::TableAppliedDiff<'r, VideoHash>,
+    unique_hash: __sdk::TableAppliedDiff<'r, UniqueHash>,
 }
 
 impl __sdk::InModule for AppliedDiff<'_> {
@@ -121,6 +133,7 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks: &mut __sdk::DbCallbacks<RemoteModule>,
     ) {
         callbacks.invoke_table_row_callbacks::<VideoHash>("dedup_index", &self.dedup_index, event);
+        callbacks.invoke_table_row_callbacks::<UniqueHash>("unique_hash", &self.unique_hash, event);
     }
 }
 
@@ -697,5 +710,6 @@ impl __sdk::SpacetimeModule for RemoteModule {
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
         dedup_index_table::register_table(client_cache);
+        unique_hash_table::register_table(client_cache);
     }
 }
