@@ -47,7 +47,7 @@ pub fn add_to_withdraw_amount(
         info.last_reset_at = ctx.timestamp;
     } else {
         let new_amt = info.withdrawal_amt_24h.saturating_add(amount);
-        info.withdrawal_amt_24h = (new_amt < max_amount)
+        info.withdrawal_amt_24h = (new_amt <= max_amount)
             .then_some(new_amt)
             .ok_or(AddToWithdrawError::WithdrawalLimitExceeded)?;
     }
