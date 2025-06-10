@@ -20,13 +20,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install spacetime cli
-        run: curl -sSf https://install.spacetimedb.com | sh
-
-      - name: Logging spacetime cli version
         run: |
           curl -sSf https://install.spacetimedb.com -o install.sh
           chmod +x install.sh
           ./install.sh --root-dir /usr/bin --yes
+
+      - name: Logging spacetime cli version
+        run: spacetime --version
 
       - name: Login to spacetime with token
         run: spacetime login --token ${{ secrets.STDB_DEPLOYMENT_TOKEN }}
