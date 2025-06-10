@@ -1,0 +1,37 @@
+name: Make preview deployment for dedup-index
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'dedup-index/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: preview
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install spacetime cli
+        run: curl -sSf https://install.spacetimedb.com | sh
+
+      - name: Logging spacetime cli version
+        run: |
+          curl -sSf https://install.spacetimedb.com -o install.sh
+          chmod +x install.sh
+          ./install.sh --root-dir /usr/bin --yes
+
+      - name: Login to spacetime with token
+        run: spacetime login --token ${{ secrets.STDB_DEPLOYMENT_TOKEN }}
+
+      - name: Publish a preview module
+        run: |
+          spacetime publish --project-path dedup-index "pr-${{ github.event.pull_request.number }}-dedup-index" -s maincloud
+
