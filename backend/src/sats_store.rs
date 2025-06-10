@@ -40,9 +40,7 @@ pub fn add_to_withdraw_amount(
         return Ok(());
     };
 
-    if ctx.timestamp - TimeDuration::from_duration(Duration::from_secs(24 * 3600))
-        >= info.last_reset_at
-    {
+    if ctx.timestamp - TimeDuration::from_duration(Duration::from_secs(60)) >= info.last_reset_at {
         info.withdrawal_amt_24h = amount;
         info.last_reset_at = ctx.timestamp;
     } else {
