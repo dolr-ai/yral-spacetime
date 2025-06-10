@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "client-bindings",
+    "utils",
+    "sats-store",
+]
+resolver = "2"
+
+[workspace.dependencies]
+utils = { package = "yral-spacetime-utils", path = "./utils" }
+
+spacetimedb = "1.1.2"
+log = "0.4"
+spacetimedb-sdk = "1.1.1"
+candid = "0.10.4"
+thiserror = "2.0.12"
