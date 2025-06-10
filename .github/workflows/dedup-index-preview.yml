@@ -23,7 +23,7 @@ jobs:
         run: |
           curl -sSf https://install.spacetimedb.com -o install.sh
           chmod +x install.sh
-          ./install.sh --root-dir /usr/bin --yes
+          ./install.sh --root-dir /usr/local/bin --yes
 
       - name: Logging spacetime cli version
         run: spacetime --version
