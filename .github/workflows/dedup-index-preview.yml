@@ -24,6 +24,7 @@ jobs:
           curl -sSf https://install.spacetimedb.com -o install.sh
           chmod +x install.sh
           ./install.sh --root-dir /usr/local/bin --yes
+          spacetime version install 1.1.2 # by default it doesn't install any version (? needs confirmation)
 
       - name: Logging spacetime cli version
         run: spacetime --version
