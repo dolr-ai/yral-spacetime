@@ -5,20 +5,12 @@
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 pub mod add_to_withdraw_amount_reducer;
-pub mod reset_withdrawal_amt_reducer;
-pub mod reset_withdrawal_schedule_table;
-pub mod reset_withdrawal_schedule_type;
 pub mod withdrawal_info_table;
 pub mod withdrawal_info_type;
 
 pub use add_to_withdraw_amount_reducer::{
     add_to_withdraw_amount, set_flags_for_add_to_withdraw_amount, AddToWithdrawAmountCallbackId,
 };
-pub use reset_withdrawal_amt_reducer::{
-    reset_withdrawal_amt, set_flags_for_reset_withdrawal_amt, ResetWithdrawalAmtCallbackId,
-};
-pub use reset_withdrawal_schedule_table::*;
-pub use reset_withdrawal_schedule_type::ResetWithdrawalSchedule;
 pub use withdrawal_info_table::*;
 pub use withdrawal_info_type::WithdrawalInfo;
 
@@ -30,8 +22,11 @@ pub use withdrawal_info_type::WithdrawalInfo;
 /// to indicate which reducer caused the event.
 
 pub enum Reducer {
-    AddToWithdrawAmount { principal: String, amount: u128 },
-    ResetWithdrawalAmt { arg: ResetWithdrawalSchedule },
+    AddToWithdrawAmount {
+        max_amount: u128,
+        principal: String,
+        amount: u128,
+    },
 }
 
 impl __sdk::InModule for Reducer {
@@ -42,7 +37,6 @@ impl __sdk::Reducer for Reducer {
     fn reducer_name(&self) -> &'static str {
         match self {
             Reducer::AddToWithdrawAmount { .. } => "add_to_withdraw_amount",
-            Reducer::ResetWithdrawalAmt { .. } => "reset_withdrawal_amt",
         }
     }
 }
@@ -53,10 +47,6 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
             "add_to_withdraw_amount" => Ok(__sdk::parse_reducer_args::<
                 add_to_withdraw_amount_reducer::AddToWithdrawAmountArgs,
             >("add_to_withdraw_amount", &value.args)?
-            .into()),
-            "reset_withdrawal_amt" => Ok(__sdk::parse_reducer_args::<
-                reset_withdrawal_amt_reducer::ResetWithdrawalAmtArgs,
-            >("reset_withdrawal_amt", &value.args)?
             .into()),
             unknown => {
                 Err(
@@ -72,7 +62,6 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct DbUpdate {
-    reset_withdrawal_schedule: __sdk::TableUpdate<ResetWithdrawalSchedule>,
     withdrawal_info: __sdk::TableUpdate<WithdrawalInfo>,
 }
 
@@ -82,10 +71,6 @@ impl TryFrom<__ws::DatabaseUpdate<__ws::BsatnFormat>> for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_update in raw.tables {
             match &table_update.table_name[..] {
-                "reset_withdrawal_schedule" => {
-                    db_update.reset_withdrawal_schedule =
-                        reset_withdrawal_schedule_table::parse_table_update(table_update)?
-                }
                 "withdrawal_info" => {
                     db_update.withdrawal_info =
                         withdrawal_info_table::parse_table_update(table_update)?
@@ -116,12 +101,6 @@ impl __sdk::DbUpdate for DbUpdate {
     ) -> AppliedDiff<'_> {
         let mut diff = AppliedDiff::default();
 
-        diff.reset_withdrawal_schedule = cache
-            .apply_diff_to_table::<ResetWithdrawalSchedule>(
-                "reset_withdrawal_schedule",
-                &self.reset_withdrawal_schedule,
-            )
-            .with_updates_by_pk(|row| &row.scheduled_id);
         diff.withdrawal_info = cache
             .apply_diff_to_table::<WithdrawalInfo>("withdrawal_info", &self.withdrawal_info)
             .with_updates_by_pk(|row| &row.user);
@@ -134,7 +113,6 @@ impl __sdk::DbUpdate for DbUpdate {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
-    reset_withdrawal_schedule: __sdk::TableAppliedDiff<'r, ResetWithdrawalSchedule>,
     withdrawal_info: __sdk::TableAppliedDiff<'r, WithdrawalInfo>,
 }
 
@@ -148,11 +126,6 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         event: &EventContext,
         callbacks: &mut __sdk::DbCallbacks<RemoteModule>,
     ) {
-        callbacks.invoke_table_row_callbacks::<ResetWithdrawalSchedule>(
-            "reset_withdrawal_schedule",
-            &self.reset_withdrawal_schedule,
-            event,
-        );
         callbacks.invoke_table_row_callbacks::<WithdrawalInfo>(
             "withdrawal_info",
             &self.withdrawal_info,
@@ -733,7 +706,6 @@ impl __sdk::SpacetimeModule for RemoteModule {
     type SubscriptionHandle = SubscriptionHandle;
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
-        reset_withdrawal_schedule_table::register_table(client_cache);
         withdrawal_info_table::register_table(client_cache);
     }
 }

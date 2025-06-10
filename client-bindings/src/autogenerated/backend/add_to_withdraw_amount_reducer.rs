@@ -7,6 +7,7 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 #[derive(__lib::ser::Serialize, __lib::de::Deserialize, Clone, PartialEq, Debug)]
 #[sats(crate = __lib)]
 pub(super) struct AddToWithdrawAmountArgs {
+    pub max_amount: u128,
     pub principal: String,
     pub amount: u128,
 }
@@ -14,6 +15,7 @@ pub(super) struct AddToWithdrawAmountArgs {
 impl From<AddToWithdrawAmountArgs> for super::Reducer {
     fn from(args: AddToWithdrawAmountArgs) -> Self {
         Self::AddToWithdrawAmount {
+            max_amount: args.max_amount,
             principal: args.principal,
             amount: args.amount,
         }
@@ -36,7 +38,12 @@ pub trait add_to_withdraw_amount {
     /// This method returns immediately, and errors only if we are unable to send the request.
     /// The reducer will run asynchronously in the future,
     ///  and its status can be observed by listening for [`Self::on_add_to_withdraw_amount`] callbacks.
-    fn add_to_withdraw_amount(&self, principal: String, amount: u128) -> __sdk::Result<()>;
+    fn add_to_withdraw_amount(
+        &self,
+        max_amount: u128,
+        principal: String,
+        amount: u128,
+    ) -> __sdk::Result<()>;
     /// Register a callback to run whenever we are notified of an invocation of the reducer `add_to_withdraw_amount`.
     ///
     /// Callbacks should inspect the [`__sdk::ReducerEvent`] contained in the [`super::ReducerEventContext`]
@@ -46,7 +53,7 @@ pub trait add_to_withdraw_amount {
     /// to cancel the callback.
     fn on_add_to_withdraw_amount(
         &self,
-        callback: impl FnMut(&super::ReducerEventContext, &String, &u128) + Send + 'static,
+        callback: impl FnMut(&super::ReducerEventContext, &u128, &String, &u128) + Send + 'static,
     ) -> AddToWithdrawAmountCallbackId;
     /// Cancel a callback previously registered by [`Self::on_add_to_withdraw_amount`],
     /// causing it not to run in the future.
@@ -54,15 +61,24 @@ pub trait add_to_withdraw_amount {
 }
 
 impl add_to_withdraw_amount for super::RemoteReducers {
-    fn add_to_withdraw_amount(&self, principal: String, amount: u128) -> __sdk::Result<()> {
+    fn add_to_withdraw_amount(
+        &self,
+        max_amount: u128,
+        principal: String,
+        amount: u128,
+    ) -> __sdk::Result<()> {
         self.imp.call_reducer(
             "add_to_withdraw_amount",
-            AddToWithdrawAmountArgs { principal, amount },
+            AddToWithdrawAmountArgs {
+                max_amount,
+                principal,
+                amount,
+            },
         )
     }
     fn on_add_to_withdraw_amount(
         &self,
-        mut callback: impl FnMut(&super::ReducerEventContext, &String, &u128) + Send + 'static,
+        mut callback: impl FnMut(&super::ReducerEventContext, &u128, &String, &u128) + Send + 'static,
     ) -> AddToWithdrawAmountCallbackId {
         AddToWithdrawAmountCallbackId(self.imp.on_reducer(
             "add_to_withdraw_amount",
@@ -70,7 +86,12 @@ impl add_to_withdraw_amount for super::RemoteReducers {
                 let super::ReducerEventContext {
                     event:
                         __sdk::ReducerEvent {
-                            reducer: super::Reducer::AddToWithdrawAmount { principal, amount },
+                            reducer:
+                                super::Reducer::AddToWithdrawAmount {
+                                    max_amount,
+                                    principal,
+                                    amount,
+                                },
                             ..
                         },
                     ..
@@ -78,7 +99,7 @@ impl add_to_withdraw_amount for super::RemoteReducers {
                 else {
                     unreachable!()
                 };
-                callback(ctx, principal, amount)
+                callback(ctx, max_amount, principal, amount)
             }),
         ))
     }

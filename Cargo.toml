@@ -2,7 +2,7 @@
 members = [
     "client-bindings",
     "utils",
-    "sats-store",
+    "backend",
 ]
 resolver = "2"
 
