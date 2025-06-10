@@ -1,0 +1,9 @@
+[package]
+name = "yral-spacetime-utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+spacetimedb.workspace = true
+thiserror.workspace = true
+candid.workspace = true
