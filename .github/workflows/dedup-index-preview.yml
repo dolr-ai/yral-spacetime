@@ -33,5 +33,5 @@ jobs:
 
       - name: Publish a preview module
         run: |
-          spacetime publish --project-path dedup-index "pr-${{ github.event.pull_request.number }}-dedup-index" -s maincloud
+          spacetime publish --yes --project-path dedup-index "pr-${{ github.event.pull_request.number }}-dedup-index" -s maincloud
 
