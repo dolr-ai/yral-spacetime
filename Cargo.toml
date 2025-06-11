@@ -6,7 +6,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-utils = { package = "yral-spacetime-utils", path = "./utils" }]
+utils = { package = "yral-spacetime-utils", path = "./utils" }
 
 spacetimedb = "1.1.2"
 log = "0.4"
