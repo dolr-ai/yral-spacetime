@@ -17,7 +17,14 @@ pub struct UniqueHash {
 }
 
 #[spacetimedb::reducer]
-pub fn add(ctx: &ReducerContext, hash: &str, video_id: &str, created_at: Timestamp) {
+pub fn add(
+    ctx: &ReducerContext,
+    hash: &str,
+    video_id: &str,
+    created_at: Timestamp,
+) -> utils::Result<()> {
+    utils::validate_sender_identity(ctx, utils::consts::OFFCHAIN_AGENT_TRUSTED_PRINCIPAL)?;
+
     ctx.db.dedup_index().insert(VideoHash {
         hash: hash.to_string(),
         video_id: video_id.to_string(),
@@ -30,7 +37,7 @@ pub fn add(ctx: &ReducerContext, hash: &str, video_id: &str, created_at: Timesta
     });
 
     match res {
-        Ok(..) | Err(TryInsertError::UniqueConstraintViolation(..)) => (),
+        Ok(..) | Err(TryInsertError::UniqueConstraintViolation(..)) => Ok(()),
         _ => {
             unreachable!("This should never happen")
         }

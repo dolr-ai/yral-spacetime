@@ -12,6 +12,7 @@ crate-type = ["cdylib", "lib"]
 spacetimedb = { workspace = true, optional = true }
 log = { workspace = true }
 spacetimedb-sdk = { workspace = true, optional = true }
+utils = { workspace = true }
 
 [features]
 default = ["server"]
