@@ -22,6 +22,12 @@ jobs:
       - name: Setup cache
         uses: swatinem/rust-cache@v2
 
+      - name: Install wasm-opt for optimized binaries
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: binaryen
+          version: 1.0 # cache version
+
       - name: Install spacetime cli
         run: |
           curl -sSf https://install.spacetimedb.com -o install.sh
