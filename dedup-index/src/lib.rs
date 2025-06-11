@@ -23,14 +23,20 @@ pub fn add(
     video_id: &str,
     created_at: Timestamp,
 ) -> utils::Result<()> {
-    utils::validate_sender_identity(ctx, utils::consts::OFFCHAIN_AGENT_TRUSTED_PRINCIPAL)?;
+    log::info!("add reducer called");
+    utils::validate_sender_identity(ctx, utils::consts::OFFCHAIN_AGENT_TRUSTED_PRINCIPAL)
+        .inspect_err(|err| {
+            log::error!("validation failed: {err:?}");
+        })?;
 
+    log::info!("adding to dedup_index");
     ctx.db.dedup_index().insert(VideoHash {
         hash: hash.to_string(),
         video_id: video_id.to_string(),
         created_at,
     });
 
+    log::info!("adding to unique hash");
     let res = ctx.db.unique_hash().try_insert(UniqueHash {
         hash: hash.to_string(),
         video_id: video_id.to_string(),
