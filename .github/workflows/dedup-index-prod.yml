@@ -21,6 +21,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup cache
+        uses: swatinem/rust-cache@v2
+
       - name: Install spacetime cli
         run: |
           curl -sSf https://install.spacetimedb.com -o install.sh
