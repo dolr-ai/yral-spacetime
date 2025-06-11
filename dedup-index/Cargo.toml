@@ -9,12 +9,6 @@ edition = "2021"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-spacetimedb = { workspace = true, optional = true }
+spacetimedb = { workspace = true }
 log = { workspace = true }
-spacetimedb-sdk = { workspace = true, optional = true }
 utils = { workspace = true }
-
-[features]
-default = ["server"]
-server = ["dep:spacetimedb"]
-client = ["dep:spacetimedb-sdk"]

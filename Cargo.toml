@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "dedup-index",
+    "client-bindings",
     "utils",
 ]
 resolver = "2"
