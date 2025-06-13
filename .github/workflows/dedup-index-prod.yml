@@ -40,7 +40,7 @@ jobs:
         run: spacetime --version
 
       - name: Login to spacetime with token
-        run: spacetime login --token ${{ secrets.STDB_DEPLOYMENT_TOKEN }}
+        run: spacetime login --token ${{ secrets.SPACETIME_DB_DEPLOYMENT_TOKEN }}
 
       - name: Publish a module
         run: |
