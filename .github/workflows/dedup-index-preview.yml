@@ -35,9 +35,7 @@ jobs:
       - name: Login to spacetime with token
         run: spacetime login --token ${{ secrets.SPACETIME_DB_DEPLOYMENT_TOKEN }}
 
-      - name: Publish a preview module
+      - name: Publish a module
         run: |
-          # spacetime publish --yes --project-path dedup-index "pr-${{ github.event.pull_request.number }}-dedup-index" -s maincloud
-          # TODO: just for testing
-          spacetime publish --yes --project-path dedup-index "hello-world" -s maincloud
+          spacetime publish --yes --project-path dedup-index "pr-${{ github.event.pull_request.number }}-yral-dedup-index" -s maincloud
 

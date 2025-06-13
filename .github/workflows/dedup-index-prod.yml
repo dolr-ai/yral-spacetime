@@ -42,7 +42,7 @@ jobs:
       - name: Login to spacetime with token
         run: spacetime login --token ${{ secrets.STDB_DEPLOYMENT_TOKEN }}
 
-      - name: Publish a preview module
+      - name: Publish a module
         run: |
-          spacetime publish --yes --project-path dedup-index dedup-index -s maincloud
+          spacetime publish --yes --project-path dedup-index yral-dedup-index -s maincloud
 
