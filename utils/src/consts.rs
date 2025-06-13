@@ -5,4 +5,4 @@ pub(crate) const AUTH_JWT_ISS: &str = "https://auth.yral.com";
 pub const YRAL_SSR_TRUSTED_PRINCIPAL: Principal = Principal::anonymous();
 
 pub const OFFCHAIN_AGENT_TRUSTED_PRINCIPAL: &str =
-    "o3hhp-ur64t-rf42j-pgbx3-5ahu7-kbema-zhnie-uemnz-tzswh-bpgha-bqe";
+    "hufxs-hfs2i-s5oi4-tjixu-zec4z-jjhdj-pegob-ykuje-5p4wa-joiru-2qe";
