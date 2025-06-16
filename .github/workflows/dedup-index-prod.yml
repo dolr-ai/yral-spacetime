@@ -1,0 +1,48 @@
+name: Make production deployment for dedup-index
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+     - main
+    paths:
+      - 'dedup-index/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Install wasm-opt for optimized binaries
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: binaryen
+          version: 1.0 # cache version
+
+      - name: Install spacetime cli
+        run: |
+          curl -sSf https://install.spacetimedb.com -o install.sh
+          chmod +x install.sh
+          ./install.sh --yes
+
+      - name: Logging spacetime cli version
+        run: spacetime --version
+
+      - name: Login to spacetime with token
+        run: spacetime login --token ${{ secrets.SPACETIME_DB_DEPLOYMENT_TOKEN }}
+
+      - name: Publish a module
+        run: |
+          spacetime publish --yes --project-path dedup-index yral-dedup-index -s maincloud
+
