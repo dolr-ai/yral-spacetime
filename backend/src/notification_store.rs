@@ -11,6 +11,7 @@ pub struct Notification {
     #[index(btree)]
     user: Identity,
     #[primary_key]
+    #[auto_inc]
     notification_id: u64,
     payload: String,
     created_at: Timestamp,
