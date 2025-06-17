@@ -8,6 +8,7 @@ use utils::{
 
 #[table(name = notifications, public)]
 pub struct Notification {
+    #[index(btree)]
     user: Identity,
     #[primary_key]
     notification_id: u64,
@@ -37,13 +38,10 @@ pub fn add_notification(
     let cut_off = ctx.timestamp
         - TimeDuration::from_duration(Duration::from_secs(NOTIFICATION_PRUNE_AFTER_SECS));
 
-    for old in ctx
-        .db
-        .notifications()
-        .iter()
-        .filter(|n| n.user == id && n.created_at < cut_off)
-    {
-        ctx.db.notifications().delete(old);
+    for old in ctx.db.notifications().user().filter(id) {
+        if old.created_at < cut_off {
+            ctx.db.notifications().delete(old);
+        }
     }
 
     Ok(())
