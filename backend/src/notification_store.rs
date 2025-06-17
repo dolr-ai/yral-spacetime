@@ -28,14 +28,15 @@ pub fn add_notification(
     let principal = principal.parse().map_err(Error::from)?;
     let id = identity_from_principal(principal);
 
+    let now = ctx.timestamp;
     ctx.db.notifications().insert(Notification {
         user: id,
         notification_id,
         payload,
-        created_at: ctx.timestamp,
+        created_at: now,
     });
 
-    let cut_off = ctx.timestamp
+    let cut_off = now
         - TimeDuration::from_duration(Duration::from_secs(NOTIFICATION_PRUNE_AFTER_SECS));
 
     for old in ctx.db.notifications().user().filter(id) {
