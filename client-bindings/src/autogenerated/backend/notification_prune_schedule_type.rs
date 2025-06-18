@@ -8,12 +8,11 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 #[derive(__lib::ser::Serialize, __lib::de::Deserialize, Clone, PartialEq, Debug)]
 #[sats(crate = __lib)]
-pub struct WithdrawalInfo {
-    pub user: __sdk::Identity,
-    pub withdrawal_amt_24_h: u128,
-    pub last_reset_at: __sdk::Timestamp,
+pub struct NotificationPruneSchedule {
+    pub scheduled_id: u64,
+    pub scheduled_at: __sdk::ScheduleAt,
 }
 
-impl __sdk::InModule for WithdrawalInfo {
+impl __sdk::InModule for NotificationPruneSchedule {
     type Module = super::RemoteModule;
 }
