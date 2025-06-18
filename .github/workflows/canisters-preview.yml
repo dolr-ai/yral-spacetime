@@ -1,0 +1,35 @@
+name: Make preview deployment for canisters 
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'canisters/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: preview
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install spacetime cli
+        run: |
+          curl -sSf https://install.spacetimedb.com -o install.sh
+          chmod +x install.sh
+          ./install.sh --yes
+      - name: Logging spacetime cli version
+        run: spacetime --version
+
+      - name: Login to spacetime with token
+        run: spacetime login --token ${{ secrets.SPACETIME_DB_DEPLOYMENT_TOKEN }}
+
+      - name: Publish a preview module
+        run: |
+          spacetime publish --yes --project-path canisters "pr-${{ github.event.pull_request.number }}-yral-canisters" -s maincloud
