@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use candid::Principal;
 
 pub(crate) const AUTH_JWT_ISS: &str = "https://auth.yral.com";
@@ -15,4 +17,4 @@ pub const OFFCHAIN_AGENT_TRUSTED_PRINCIPAL: Principal = Principal::from_slice(&[
 ]);
 
 /// Number of seconds after which notifications are pruned (30 days).
-pub const NOTIFICATION_PRUNE_AFTER_SECS: u64 = 30 * 24 * 3600;
+pub const NOTIFICATION_PRUNE_AFTER_SECS: Duration = Duration::from_secs(30 * 24 * 3600);

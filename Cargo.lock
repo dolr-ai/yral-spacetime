@@ -2109,6 +2109,7 @@ version = "0.1.0"
 dependencies = [
  "candid",
  "log",
+ "serde",
  "spacetimedb",
  "yral-spacetime-utils",
 ]
