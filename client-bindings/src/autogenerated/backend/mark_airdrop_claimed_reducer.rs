@@ -11,6 +11,7 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 pub(super) struct MarkAirdropClaimedArgs {
     pub user_principal: String,
     pub duration: __sdk::TimeDuration,
+    pub now: __sdk::Timestamp,
 }
 
 impl From<MarkAirdropClaimedArgs> for super::Reducer {
@@ -18,6 +19,7 @@ impl From<MarkAirdropClaimedArgs> for super::Reducer {
         Self::MarkAirdropClaimed {
             user_principal: args.user_principal,
             duration: args.duration,
+            now: args.now,
         }
     }
 }
@@ -42,6 +44,7 @@ pub trait mark_airdrop_claimed {
         &self,
         user_principal: String,
         duration: __sdk::TimeDuration,
+        now: __sdk::Timestamp,
     ) -> __sdk::Result<()>;
     /// Register a callback to run whenever we are notified of an invocation of the reducer `mark_airdrop_claimed`.
     ///
@@ -52,7 +55,7 @@ pub trait mark_airdrop_claimed {
     /// to cancel the callback.
     fn on_mark_airdrop_claimed(
         &self,
-        callback: impl FnMut(&super::ReducerEventContext, &String, &__sdk::TimeDuration)
+        callback: impl FnMut(&super::ReducerEventContext, &String, &__sdk::TimeDuration, &__sdk::Timestamp)
             + Send
             + 'static,
     ) -> MarkAirdropClaimedCallbackId;
@@ -66,18 +69,20 @@ impl mark_airdrop_claimed for super::RemoteReducers {
         &self,
         user_principal: String,
         duration: __sdk::TimeDuration,
+        now: __sdk::Timestamp,
     ) -> __sdk::Result<()> {
         self.imp.call_reducer(
             "mark_airdrop_claimed",
             MarkAirdropClaimedArgs {
                 user_principal,
                 duration,
+                now,
             },
         )
     }
     fn on_mark_airdrop_claimed(
         &self,
-        mut callback: impl FnMut(&super::ReducerEventContext, &String, &__sdk::TimeDuration)
+        mut callback: impl FnMut(&super::ReducerEventContext, &String, &__sdk::TimeDuration, &__sdk::Timestamp)
             + Send
             + 'static,
     ) -> MarkAirdropClaimedCallbackId {
@@ -91,6 +96,7 @@ impl mark_airdrop_claimed for super::RemoteReducers {
                                 super::Reducer::MarkAirdropClaimed {
                                     user_principal,
                                     duration,
+                                    now,
                                 },
                             ..
                         },
@@ -99,7 +105,7 @@ impl mark_airdrop_claimed for super::RemoteReducers {
                 else {
                     unreachable!()
                 };
-                callback(ctx, user_principal, duration)
+                callback(ctx, user_principal, duration, now)
             }),
         ))
     }

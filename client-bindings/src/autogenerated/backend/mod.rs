@@ -40,6 +40,7 @@ pub enum Reducer {
     MarkAirdropClaimed {
         user_principal: String,
         duration: __sdk::TimeDuration,
+        now: __sdk::Timestamp,
     },
 }
 

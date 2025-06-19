@@ -9,9 +9,14 @@ pub struct DolrAirdropInfo {
 }
 
 #[spacetimedb::reducer]
-pub fn mark_airdrop_claimed(ctx: &ReducerContext, user_principal: String, duration: TimeDuration) {
+pub fn mark_airdrop_claimed(
+    ctx: &ReducerContext,
+    user_principal: String,
+    duration: TimeDuration,
+    // take from the caller to avoid issues with lag
+    now: Timestamp,
+) {
     // TODO: add identity validation before merging
-    let now = ctx.timestamp;
 
     let Some(mut prev) = ctx
         .db
