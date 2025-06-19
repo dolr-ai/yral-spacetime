@@ -17,13 +17,10 @@ pub fn add_deleted_canister(
             log::error!("validation failed: {err:?}");
         })?;
 
-    let res = ctx
+    let _res = ctx
         .db
         .deleted_canisters()
-        .try_insert(DeletedCanisters { canister, user_id });
+        .insert(DeletedCanisters { canister, user_id });
 
-    match res {
-        Ok(..) => Ok(()),
-        _ => unreachable!("This should never happen"),
-    }
+    Ok(())
 }
