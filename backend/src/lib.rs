@@ -1,2 +1,2 @@
-mod sats_store;
 mod notification_store;
+mod sats_store;

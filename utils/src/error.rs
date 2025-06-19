@@ -7,6 +7,8 @@ pub enum Error {
     InvalidIdentity,
     #[error("invalid principal: {0}")]
     InvalidPrincipal(#[from] PrincipalError),
+    #[error("notification not found for notification id: {0}")]
+    NotificationNotFound(u64),
 }
 
 #[derive(Error, Debug)]

@@ -1,4 +1,6 @@
-use spacetimedb::{table, Identity, ReducerContext, SpacetimeType, Table, TimeDuration, Timestamp, ScheduleAt};
+use spacetimedb::{
+    table, Identity, ReducerContext, ScheduleAt, SpacetimeType, Table, TimeDuration, Timestamp,
+};
 use utils::{
     consts::{NOTIFICATION_PRUNE_AFTER_SECS, YRAL_SSR_TRUSTED_PRINCIPAL},
     identity_from_principal, validate_sender_identity, Error, Result,
@@ -12,6 +14,7 @@ pub struct Notification {
     #[auto_inc]
     notification_id: u64,
     payload: NotificationType,
+    read: bool,
     created_at: Timestamp,
 }
 
@@ -57,8 +60,27 @@ pub fn add_notification(
         payload,
         created_at: now,
         notification_id: 0,
+        read: false,
     });
 
+    Ok(())
+}
+
+#[spacetimedb::reducer]
+pub fn mark_as_read(ctx: &ReducerContext, notification_id: u64) -> Result<()> {
+    validate_sender_identity(ctx, YRAL_SSR_TRUSTED_PRINCIPAL)?;
+    let mut notification = ctx
+        .db
+        .notifications()
+        .notification_id()
+        .find(notification_id)
+        .ok_or(Error::NotificationNotFound(notification_id))?;
+
+    notification.read = true;
+    ctx.db
+        .notifications()
+        .notification_id()
+        .update(notification);
     Ok(())
 }
 
@@ -85,9 +107,11 @@ pub fn init_notification_prune(ctx: &ReducerContext) {
 
     // Insert the schedule row only if it hasn't been inserted yet (idempotent on replays).
     if ctx.db.notification_prune_schedule().count() == 0 {
-        ctx.db.notification_prune_schedule().insert(NotificationPruneSchedule {
-            scheduled_id: 0,
-            scheduled_at: loop_duration.into(),
-        });
+        ctx.db
+            .notification_prune_schedule()
+            .insert(NotificationPruneSchedule {
+                scheduled_id: 0,
+                scheduled_at: loop_duration.into(),
+            });
     }
-} 
+}
