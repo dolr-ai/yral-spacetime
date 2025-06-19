@@ -10,9 +10,9 @@ resolver = "2"
 [workspace.dependencies]
 utils = { package = "yral-spacetime-utils", path = "./utils" }
 
-spacetimedb = "1.1.2"
+spacetimedb = "1.2.0"
 log = "0.4"
-spacetimedb-sdk = "1.1.1"
+spacetimedb-sdk = "1.2.0"
 candid = "0.10.4"
 thiserror = "2.0.12"
 serde = { version = "1.0", features = ["derive"] }
