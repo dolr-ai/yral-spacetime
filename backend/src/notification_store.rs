@@ -17,14 +17,12 @@ pub struct Notification {
 
 #[derive(serde::Deserialize, serde::Serialize, SpacetimeType)]
 pub struct LikedPayload {
-    creator_canister_id: String, // cant do spacetimetype for principal so string it is
     by_user_principal: String, // cant do spacetimetype for principal so string it is
     post_id: u64,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, SpacetimeType)]
 pub struct VideoUploadPayload {
-    creator_canister_id: String, // cant do spacetimetype for principal so string it is
     video_id: u64,
 }
 
