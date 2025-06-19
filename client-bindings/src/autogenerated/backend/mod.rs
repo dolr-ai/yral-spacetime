@@ -7,11 +7,19 @@
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 pub mod add_to_withdraw_amount_reducer;
+pub mod dolr_airdrop_info_table;
+pub mod dolr_airdrop_info_type;
+pub mod mark_airdrop_claimed_reducer;
 pub mod withdrawal_info_table;
 pub mod withdrawal_info_type;
 
 pub use add_to_withdraw_amount_reducer::{
     add_to_withdraw_amount, set_flags_for_add_to_withdraw_amount, AddToWithdrawAmountCallbackId,
+};
+pub use dolr_airdrop_info_table::*;
+pub use dolr_airdrop_info_type::DolrAirdropInfo;
+pub use mark_airdrop_claimed_reducer::{
+    mark_airdrop_claimed, set_flags_for_mark_airdrop_claimed, MarkAirdropClaimedCallbackId,
 };
 pub use withdrawal_info_table::*;
 pub use withdrawal_info_type::WithdrawalInfo;
@@ -29,6 +37,10 @@ pub enum Reducer {
         principal: String,
         amount: u128,
     },
+    MarkAirdropClaimed {
+        user_principal: String,
+        duration: __sdk::TimeDuration,
+    },
 }
 
 impl __sdk::InModule for Reducer {
@@ -39,6 +51,7 @@ impl __sdk::Reducer for Reducer {
     fn reducer_name(&self) -> &'static str {
         match self {
             Reducer::AddToWithdrawAmount { .. } => "add_to_withdraw_amount",
+            Reducer::MarkAirdropClaimed { .. } => "mark_airdrop_claimed",
         }
     }
 }
@@ -49,6 +62,10 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
             "add_to_withdraw_amount" => Ok(__sdk::parse_reducer_args::<
                 add_to_withdraw_amount_reducer::AddToWithdrawAmountArgs,
             >("add_to_withdraw_amount", &value.args)?
+            .into()),
+            "mark_airdrop_claimed" => Ok(__sdk::parse_reducer_args::<
+                mark_airdrop_claimed_reducer::MarkAirdropClaimedArgs,
+            >("mark_airdrop_claimed", &value.args)?
             .into()),
             unknown => {
                 Err(
@@ -64,6 +81,7 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct DbUpdate {
+    dolr_airdrop_info: __sdk::TableUpdate<DolrAirdropInfo>,
     withdrawal_info: __sdk::TableUpdate<WithdrawalInfo>,
 }
 
@@ -73,6 +91,9 @@ impl TryFrom<__ws::DatabaseUpdate<__ws::BsatnFormat>> for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_update in raw.tables {
             match &table_update.table_name[..] {
+                "dolr_airdrop_info" => db_update
+                    .dolr_airdrop_info
+                    .append(dolr_airdrop_info_table::parse_table_update(table_update)?),
                 "withdrawal_info" => db_update
                     .withdrawal_info
                     .append(withdrawal_info_table::parse_table_update(table_update)?),
@@ -102,6 +123,9 @@ impl __sdk::DbUpdate for DbUpdate {
     ) -> AppliedDiff<'_> {
         let mut diff = AppliedDiff::default();
 
+        diff.dolr_airdrop_info = cache
+            .apply_diff_to_table::<DolrAirdropInfo>("dolr_airdrop_info", &self.dolr_airdrop_info)
+            .with_updates_by_pk(|row| &row.user_principal);
         diff.withdrawal_info = cache
             .apply_diff_to_table::<WithdrawalInfo>("withdrawal_info", &self.withdrawal_info)
             .with_updates_by_pk(|row| &row.user);
@@ -114,6 +138,7 @@ impl __sdk::DbUpdate for DbUpdate {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
+    dolr_airdrop_info: __sdk::TableAppliedDiff<'r, DolrAirdropInfo>,
     withdrawal_info: __sdk::TableAppliedDiff<'r, WithdrawalInfo>,
 }
 
@@ -127,6 +152,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         event: &EventContext,
         callbacks: &mut __sdk::DbCallbacks<RemoteModule>,
     ) {
+        callbacks.invoke_table_row_callbacks::<DolrAirdropInfo>(
+            "dolr_airdrop_info",
+            &self.dolr_airdrop_info,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<WithdrawalInfo>(
             "withdrawal_info",
             &self.withdrawal_info,
@@ -707,6 +737,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
     type SubscriptionHandle = SubscriptionHandle;
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
+        dolr_airdrop_info_table::register_table(client_cache);
         withdrawal_info_table::register_table(client_cache);
     }
 }
