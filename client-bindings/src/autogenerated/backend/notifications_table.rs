@@ -5,7 +5,7 @@
 
 #![allow(unused, clippy::all)]
 use super::notification_type::Notification;
-use super::notification_type_type::NotificationType;
+use super::notifications_type::Notifications;
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 /// Table handle for the table `notifications`.
@@ -84,7 +84,7 @@ impl<'ctx> __sdk::Table for NotificationsTableHandle<'ctx> {
 #[doc(hidden)]
 pub(super) fn register_table(client_cache: &mut __sdk::ClientCache<super::RemoteModule>) {
     let _table = client_cache.get_or_make_table::<Notification>("notifications");
-    _table.add_unique_constraint::<u64>("notification_id", |row| &row.notification_id);
+    _table.add_unique_constraint::<__sdk::Identity>("user", |row| &row.user);
 }
 pub struct NotificationsUpdateCallbackId(__sdk::CallbackId);
 
@@ -114,32 +114,32 @@ pub(super) fn parse_table_update(
     })
 }
 
-/// Access to the `notification_id` unique index on the table `notifications`,
+/// Access to the `user` unique index on the table `notifications`,
 /// which allows point queries on the field of the same name
-/// via the [`NotificationsNotificationIdUnique::find`] method.
+/// via the [`NotificationsUserUnique::find`] method.
 ///
 /// Users are encouraged not to explicitly reference this type,
 /// but to directly chain method calls,
-/// like `ctx.db.notifications().notification_id().find(...)`.
-pub struct NotificationsNotificationIdUnique<'ctx> {
-    imp: __sdk::UniqueConstraintHandle<Notification, u64>,
+/// like `ctx.db.notifications().user().find(...)`.
+pub struct NotificationsUserUnique<'ctx> {
+    imp: __sdk::UniqueConstraintHandle<Notification, __sdk::Identity>,
     phantom: std::marker::PhantomData<&'ctx super::RemoteTables>,
 }
 
 impl<'ctx> NotificationsTableHandle<'ctx> {
-    /// Get a handle on the `notification_id` unique index on the table `notifications`.
-    pub fn notification_id(&self) -> NotificationsNotificationIdUnique<'ctx> {
-        NotificationsNotificationIdUnique {
-            imp: self.imp.get_unique_constraint::<u64>("notification_id"),
+    /// Get a handle on the `user` unique index on the table `notifications`.
+    pub fn user(&self) -> NotificationsUserUnique<'ctx> {
+        NotificationsUserUnique {
+            imp: self.imp.get_unique_constraint::<__sdk::Identity>("user"),
             phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<'ctx> NotificationsNotificationIdUnique<'ctx> {
-    /// Find the subscribed row whose `notification_id` column value is equal to `col_val`,
+impl<'ctx> NotificationsUserUnique<'ctx> {
+    /// Find the subscribed row whose `user` column value is equal to `col_val`,
     /// if such a row is present in the client cache.
-    pub fn find(&self, col_val: &u64) -> Option<Notification> {
+    pub fn find(&self, col_val: &__sdk::Identity) -> Option<Notification> {
         self.imp.find(col_val)
     }
 }

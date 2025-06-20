@@ -9,11 +9,13 @@ use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 pub mod add_notification_reducer;
 pub mod add_to_withdraw_amount_reducer;
 pub mod liked_payload_type;
+pub mod mark_as_read_reducer;
 pub mod notification_prune_schedule_table;
 pub mod notification_prune_schedule_type;
 pub mod notification_type;
 pub mod notification_type_type;
 pub mod notifications_table;
+pub mod notifications_type;
 pub mod prune_notifications_reducer;
 pub mod video_upload_payload_type;
 pub mod withdrawal_info_table;
@@ -26,11 +28,13 @@ pub use add_to_withdraw_amount_reducer::{
     add_to_withdraw_amount, set_flags_for_add_to_withdraw_amount, AddToWithdrawAmountCallbackId,
 };
 pub use liked_payload_type::LikedPayload;
+pub use mark_as_read_reducer::{mark_as_read, set_flags_for_mark_as_read, MarkAsReadCallbackId};
 pub use notification_prune_schedule_table::*;
 pub use notification_prune_schedule_type::NotificationPruneSchedule;
 pub use notification_type::Notification;
 pub use notification_type_type::NotificationType;
 pub use notifications_table::*;
+pub use notifications_type::Notifications;
 pub use prune_notifications_reducer::{
     prune_notifications, set_flags_for_prune_notifications, PruneNotificationsCallbackId,
 };
@@ -55,6 +59,10 @@ pub enum Reducer {
         principal: String,
         amount: u128,
     },
+    MarkAsRead {
+        principal: String,
+        notification_id: u64,
+    },
     PruneNotifications {
         schedule: NotificationPruneSchedule,
     },
@@ -69,6 +77,7 @@ impl __sdk::Reducer for Reducer {
         match self {
             Reducer::AddNotification { .. } => "add_notification",
             Reducer::AddToWithdrawAmount { .. } => "add_to_withdraw_amount",
+            Reducer::MarkAsRead { .. } => "mark_as_read",
             Reducer::PruneNotifications { .. } => "prune_notifications",
         }
     }
@@ -85,6 +94,13 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
                 add_to_withdraw_amount_reducer::AddToWithdrawAmountArgs,
             >("add_to_withdraw_amount", &value.args)?
             .into()),
+            "mark_as_read" => Ok(
+                __sdk::parse_reducer_args::<mark_as_read_reducer::MarkAsReadArgs>(
+                    "mark_as_read",
+                    &value.args,
+                )?
+                .into(),
+            ),
             "prune_notifications" => Ok(__sdk::parse_reducer_args::<
                 prune_notifications_reducer::PruneNotificationsArgs,
             >("prune_notifications", &value.args)?
@@ -157,7 +173,7 @@ impl __sdk::DbUpdate for DbUpdate {
             .with_updates_by_pk(|row| &row.scheduled_id);
         diff.notifications = cache
             .apply_diff_to_table::<Notification>("notifications", &self.notifications)
-            .with_updates_by_pk(|row| &row.notification_id);
+            .with_updates_by_pk(|row| &row.user);
         diff.withdrawal_info = cache
             .apply_diff_to_table::<WithdrawalInfo>("withdrawal_info", &self.withdrawal_info)
             .with_updates_by_pk(|row| &row.user);
