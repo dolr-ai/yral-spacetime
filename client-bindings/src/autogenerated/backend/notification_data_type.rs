@@ -10,13 +10,13 @@ use super::notification_type_type::NotificationType;
 
 #[derive(__lib::ser::Serialize, __lib::de::Deserialize, Clone, PartialEq, Debug)]
 #[sats(crate = __lib)]
-pub struct Notifications {
+pub struct NotificationData {
     pub notification_id: u64,
     pub payload: NotificationType,
     pub read: bool,
     pub created_at: __sdk::Timestamp,
 }
 
-impl __sdk::InModule for Notifications {
+impl __sdk::InModule for NotificationData {
     type Module = super::RemoteModule;
 }

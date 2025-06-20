@@ -10,12 +10,12 @@ pub mod add_notification_reducer;
 pub mod add_to_withdraw_amount_reducer;
 pub mod liked_payload_type;
 pub mod mark_as_read_reducer;
+pub mod notification_data_type;
 pub mod notification_prune_schedule_table;
 pub mod notification_prune_schedule_type;
+pub mod notification_table;
 pub mod notification_type;
 pub mod notification_type_type;
-pub mod notifications_table;
-pub mod notifications_type;
 pub mod prune_notifications_reducer;
 pub mod video_upload_payload_type;
 pub mod withdrawal_info_table;
@@ -29,12 +29,12 @@ pub use add_to_withdraw_amount_reducer::{
 };
 pub use liked_payload_type::LikedPayload;
 pub use mark_as_read_reducer::{mark_as_read, set_flags_for_mark_as_read, MarkAsReadCallbackId};
+pub use notification_data_type::NotificationData;
 pub use notification_prune_schedule_table::*;
 pub use notification_prune_schedule_type::NotificationPruneSchedule;
+pub use notification_table::*;
 pub use notification_type::Notification;
 pub use notification_type_type::NotificationType;
-pub use notifications_table::*;
-pub use notifications_type::Notifications;
 pub use prune_notifications_reducer::{
     prune_notifications, set_flags_for_prune_notifications, PruneNotificationsCallbackId,
 };
@@ -119,8 +119,8 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct DbUpdate {
+    notification: __sdk::TableUpdate<Notification>,
     notification_prune_schedule: __sdk::TableUpdate<NotificationPruneSchedule>,
-    notifications: __sdk::TableUpdate<Notification>,
     withdrawal_info: __sdk::TableUpdate<WithdrawalInfo>,
 }
 
@@ -130,12 +130,12 @@ impl TryFrom<__ws::DatabaseUpdate<__ws::BsatnFormat>> for DbUpdate {
         let mut db_update = DbUpdate::default();
         for table_update in raw.tables {
             match &table_update.table_name[..] {
+                "notification" => db_update
+                    .notification
+                    .append(notification_table::parse_table_update(table_update)?),
                 "notification_prune_schedule" => db_update.notification_prune_schedule.append(
                     notification_prune_schedule_table::parse_table_update(table_update)?,
                 ),
-                "notifications" => db_update
-                    .notifications
-                    .append(notifications_table::parse_table_update(table_update)?),
                 "withdrawal_info" => db_update
                     .withdrawal_info
                     .append(withdrawal_info_table::parse_table_update(table_update)?),
@@ -165,15 +165,15 @@ impl __sdk::DbUpdate for DbUpdate {
     ) -> AppliedDiff<'_> {
         let mut diff = AppliedDiff::default();
 
+        diff.notification = cache
+            .apply_diff_to_table::<Notification>("notification", &self.notification)
+            .with_updates_by_pk(|row| &row.user);
         diff.notification_prune_schedule = cache
             .apply_diff_to_table::<NotificationPruneSchedule>(
                 "notification_prune_schedule",
                 &self.notification_prune_schedule,
             )
             .with_updates_by_pk(|row| &row.scheduled_id);
-        diff.notifications = cache
-            .apply_diff_to_table::<Notification>("notifications", &self.notifications)
-            .with_updates_by_pk(|row| &row.user);
         diff.withdrawal_info = cache
             .apply_diff_to_table::<WithdrawalInfo>("withdrawal_info", &self.withdrawal_info)
             .with_updates_by_pk(|row| &row.user);
@@ -186,8 +186,8 @@ impl __sdk::DbUpdate for DbUpdate {
 #[allow(non_snake_case)]
 #[doc(hidden)]
 pub struct AppliedDiff<'r> {
+    notification: __sdk::TableAppliedDiff<'r, Notification>,
     notification_prune_schedule: __sdk::TableAppliedDiff<'r, NotificationPruneSchedule>,
-    notifications: __sdk::TableAppliedDiff<'r, Notification>,
     withdrawal_info: __sdk::TableAppliedDiff<'r, WithdrawalInfo>,
 }
 
@@ -201,14 +201,14 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         event: &EventContext,
         callbacks: &mut __sdk::DbCallbacks<RemoteModule>,
     ) {
+        callbacks.invoke_table_row_callbacks::<Notification>(
+            "notification",
+            &self.notification,
+            event,
+        );
         callbacks.invoke_table_row_callbacks::<NotificationPruneSchedule>(
             "notification_prune_schedule",
             &self.notification_prune_schedule,
-            event,
-        );
-        callbacks.invoke_table_row_callbacks::<Notification>(
-            "notifications",
-            &self.notifications,
             event,
         );
         callbacks.invoke_table_row_callbacks::<WithdrawalInfo>(
@@ -791,8 +791,8 @@ impl __sdk::SpacetimeModule for RemoteModule {
     type SubscriptionHandle = SubscriptionHandle;
 
     fn register_tables(client_cache: &mut __sdk::ClientCache<Self>) {
+        notification_table::register_table(client_cache);
         notification_prune_schedule_table::register_table(client_cache);
-        notifications_table::register_table(client_cache);
         withdrawal_info_table::register_table(client_cache);
     }
 }

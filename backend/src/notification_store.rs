@@ -7,15 +7,15 @@ use utils::{
     identity_from_principal, validate_sender_identity, Error, Result,
 };
 
-#[table(name = notifications)]
+#[table(name = notification)]
 pub struct Notification {
     #[primary_key]
     user: Identity,
-    notifications: Vec<Notifications>,
+    notifications: Vec<NotificationData>,
 }
 
 #[derive(SpacetimeType)]
-struct Notifications {
+struct NotificationData {
     notification_id: u64,
     payload: NotificationType,
     read: bool,
@@ -60,29 +60,29 @@ pub fn add_notification(
 
     let now = ctx.timestamp;
 
-    let notifications = ctx.db.notifications().user().find(id);
+    let notifications = ctx.db.notification().user().find(id);
 
     match notifications {
         Some(mut notifications) => {
-            notifications.notifications.push(Notifications {
+            notifications.notifications.push(NotificationData {
                 notification_id: notifications.notifications.len() as u64,
                 payload,
                 created_at: now,
                 read: false,
             });
-            ctx.db.notifications().user().update(notifications);
+            ctx.db.notification().user().update(notifications);
         }
         None => {
             let default_notification = Notification {
                 user: id,
-                notifications: vec![Notifications {
+                notifications: vec![NotificationData {
                     notification_id: 0,
                     payload,
                     created_at: now,
                     read: false,
                 }],
             };
-            ctx.db.notifications().insert(default_notification);
+            ctx.db.notification().insert(default_notification);
         }
     }
 
@@ -97,7 +97,7 @@ pub fn mark_as_read(ctx: &ReducerContext, principal: String, notification_id: u6
 
     let notification = ctx
         .db
-        .notifications()
+        .notification()
         .user()
         .find(id)
         .and_then(|mut notification| {
@@ -110,7 +110,7 @@ pub fn mark_as_read(ctx: &ReducerContext, principal: String, notification_id: u6
         })
         .ok_or(Error::NotificationNotFound(notification_id))?;
 
-    ctx.db.notifications().user().update(notification);
+    ctx.db.notification().user().update(notification);
 
     Ok(())
 }
@@ -122,11 +122,11 @@ pub fn prune_notifications(
 ) -> Result<()> {
     let cut_off = ctx.timestamp - TimeDuration::from_duration(NOTIFICATION_PRUNE_AFTER_SECS);
 
-    for mut notification in ctx.db.notifications().iter() {
+    for mut notification in ctx.db.notification().iter() {
         notification
             .notifications
             .retain(|n| n.created_at > cut_off);
-        ctx.db.notifications().user().update(notification);
+        ctx.db.notification().user().update(notification);
     }
 
     Ok(())

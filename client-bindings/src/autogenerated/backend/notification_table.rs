@@ -4,46 +4,46 @@
 // This was generated using spacetimedb cli version 1.2.0 (commit fb41e50eb73573b70eea532aeb6158eaac06fae0).
 
 #![allow(unused, clippy::all)]
+use super::notification_data_type::NotificationData;
 use super::notification_type::Notification;
-use super::notifications_type::Notifications;
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
-/// Table handle for the table `notifications`.
+/// Table handle for the table `notification`.
 ///
-/// Obtain a handle from the [`NotificationsTableAccess::notifications`] method on [`super::RemoteTables`],
-/// like `ctx.db.notifications()`.
+/// Obtain a handle from the [`NotificationTableAccess::notification`] method on [`super::RemoteTables`],
+/// like `ctx.db.notification()`.
 ///
 /// Users are encouraged not to explicitly reference this type,
 /// but to directly chain method calls,
-/// like `ctx.db.notifications().on_insert(...)`.
-pub struct NotificationsTableHandle<'ctx> {
+/// like `ctx.db.notification().on_insert(...)`.
+pub struct NotificationTableHandle<'ctx> {
     imp: __sdk::TableHandle<Notification>,
     ctx: std::marker::PhantomData<&'ctx super::RemoteTables>,
 }
 
 #[allow(non_camel_case_types)]
-/// Extension trait for access to the table `notifications`.
+/// Extension trait for access to the table `notification`.
 ///
 /// Implemented for [`super::RemoteTables`].
-pub trait NotificationsTableAccess {
+pub trait NotificationTableAccess {
     #[allow(non_snake_case)]
-    /// Obtain a [`NotificationsTableHandle`], which mediates access to the table `notifications`.
-    fn notifications(&self) -> NotificationsTableHandle<'_>;
+    /// Obtain a [`NotificationTableHandle`], which mediates access to the table `notification`.
+    fn notification(&self) -> NotificationTableHandle<'_>;
 }
 
-impl NotificationsTableAccess for super::RemoteTables {
-    fn notifications(&self) -> NotificationsTableHandle<'_> {
-        NotificationsTableHandle {
-            imp: self.imp.get_table::<Notification>("notifications"),
+impl NotificationTableAccess for super::RemoteTables {
+    fn notification(&self) -> NotificationTableHandle<'_> {
+        NotificationTableHandle {
+            imp: self.imp.get_table::<Notification>("notification"),
             ctx: std::marker::PhantomData,
         }
     }
 }
 
-pub struct NotificationsInsertCallbackId(__sdk::CallbackId);
-pub struct NotificationsDeleteCallbackId(__sdk::CallbackId);
+pub struct NotificationInsertCallbackId(__sdk::CallbackId);
+pub struct NotificationDeleteCallbackId(__sdk::CallbackId);
 
-impl<'ctx> __sdk::Table for NotificationsTableHandle<'ctx> {
+impl<'ctx> __sdk::Table for NotificationTableHandle<'ctx> {
     type Row = Notification;
     type EventContext = super::EventContext;
 
@@ -54,51 +54,51 @@ impl<'ctx> __sdk::Table for NotificationsTableHandle<'ctx> {
         self.imp.iter()
     }
 
-    type InsertCallbackId = NotificationsInsertCallbackId;
+    type InsertCallbackId = NotificationInsertCallbackId;
 
     fn on_insert(
         &self,
         callback: impl FnMut(&Self::EventContext, &Self::Row) + Send + 'static,
-    ) -> NotificationsInsertCallbackId {
-        NotificationsInsertCallbackId(self.imp.on_insert(Box::new(callback)))
+    ) -> NotificationInsertCallbackId {
+        NotificationInsertCallbackId(self.imp.on_insert(Box::new(callback)))
     }
 
-    fn remove_on_insert(&self, callback: NotificationsInsertCallbackId) {
+    fn remove_on_insert(&self, callback: NotificationInsertCallbackId) {
         self.imp.remove_on_insert(callback.0)
     }
 
-    type DeleteCallbackId = NotificationsDeleteCallbackId;
+    type DeleteCallbackId = NotificationDeleteCallbackId;
 
     fn on_delete(
         &self,
         callback: impl FnMut(&Self::EventContext, &Self::Row) + Send + 'static,
-    ) -> NotificationsDeleteCallbackId {
-        NotificationsDeleteCallbackId(self.imp.on_delete(Box::new(callback)))
+    ) -> NotificationDeleteCallbackId {
+        NotificationDeleteCallbackId(self.imp.on_delete(Box::new(callback)))
     }
 
-    fn remove_on_delete(&self, callback: NotificationsDeleteCallbackId) {
+    fn remove_on_delete(&self, callback: NotificationDeleteCallbackId) {
         self.imp.remove_on_delete(callback.0)
     }
 }
 
 #[doc(hidden)]
 pub(super) fn register_table(client_cache: &mut __sdk::ClientCache<super::RemoteModule>) {
-    let _table = client_cache.get_or_make_table::<Notification>("notifications");
+    let _table = client_cache.get_or_make_table::<Notification>("notification");
     _table.add_unique_constraint::<__sdk::Identity>("user", |row| &row.user);
 }
-pub struct NotificationsUpdateCallbackId(__sdk::CallbackId);
+pub struct NotificationUpdateCallbackId(__sdk::CallbackId);
 
-impl<'ctx> __sdk::TableWithPrimaryKey for NotificationsTableHandle<'ctx> {
-    type UpdateCallbackId = NotificationsUpdateCallbackId;
+impl<'ctx> __sdk::TableWithPrimaryKey for NotificationTableHandle<'ctx> {
+    type UpdateCallbackId = NotificationUpdateCallbackId;
 
     fn on_update(
         &self,
         callback: impl FnMut(&Self::EventContext, &Self::Row, &Self::Row) + Send + 'static,
-    ) -> NotificationsUpdateCallbackId {
-        NotificationsUpdateCallbackId(self.imp.on_update(Box::new(callback)))
+    ) -> NotificationUpdateCallbackId {
+        NotificationUpdateCallbackId(self.imp.on_update(Box::new(callback)))
     }
 
-    fn remove_on_update(&self, callback: NotificationsUpdateCallbackId) {
+    fn remove_on_update(&self, callback: NotificationUpdateCallbackId) {
         self.imp.remove_on_update(callback.0)
     }
 }
@@ -114,29 +114,29 @@ pub(super) fn parse_table_update(
     })
 }
 
-/// Access to the `user` unique index on the table `notifications`,
+/// Access to the `user` unique index on the table `notification`,
 /// which allows point queries on the field of the same name
-/// via the [`NotificationsUserUnique::find`] method.
+/// via the [`NotificationUserUnique::find`] method.
 ///
 /// Users are encouraged not to explicitly reference this type,
 /// but to directly chain method calls,
-/// like `ctx.db.notifications().user().find(...)`.
-pub struct NotificationsUserUnique<'ctx> {
+/// like `ctx.db.notification().user().find(...)`.
+pub struct NotificationUserUnique<'ctx> {
     imp: __sdk::UniqueConstraintHandle<Notification, __sdk::Identity>,
     phantom: std::marker::PhantomData<&'ctx super::RemoteTables>,
 }
 
-impl<'ctx> NotificationsTableHandle<'ctx> {
-    /// Get a handle on the `user` unique index on the table `notifications`.
-    pub fn user(&self) -> NotificationsUserUnique<'ctx> {
-        NotificationsUserUnique {
+impl<'ctx> NotificationTableHandle<'ctx> {
+    /// Get a handle on the `user` unique index on the table `notification`.
+    pub fn user(&self) -> NotificationUserUnique<'ctx> {
+        NotificationUserUnique {
             imp: self.imp.get_unique_constraint::<__sdk::Identity>("user"),
             phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<'ctx> NotificationsUserUnique<'ctx> {
+impl<'ctx> NotificationUserUnique<'ctx> {
     /// Find the subscribed row whose `user` column value is equal to `col_val`,
     /// if such a row is present in the client cache.
     pub fn find(&self, col_val: &__sdk::Identity) -> Option<Notification> {
