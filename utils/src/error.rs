@@ -7,8 +7,6 @@ pub enum Error {
     InvalidIdentity,
     #[error("invalid principal: {0}")]
     InvalidPrincipal(#[from] PrincipalError),
-    #[error("notification not found for notification id: {0}")]
-    NotificationNotFound(u64),
 }
 
 #[derive(Error, Debug)]
@@ -17,6 +15,14 @@ pub enum AddToWithdrawError {
     Common(#[from] Error),
     #[error("withdrawal amount exceeds maximum allowed")]
     WithdrawalLimitExceeded,
+}
+
+#[derive(Error, Debug)]
+pub enum NotificationError {
+    #[error("notification not found for notification id: {0}")]
+    NotificationNotFound(u64),
+    #[error(transparent)]
+    Common(#[from] Error),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

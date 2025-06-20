@@ -4,7 +4,7 @@ use spacetimedb::{
 };
 use utils::{
     consts::{NOTIFICATION_PRUNE_AFTER_SECS, YRAL_SSR_TRUSTED_PRINCIPAL},
-    identity_from_principal, validate_sender_identity, Error, Result,
+    identity_from_principal, validate_sender_identity, Error, NotificationError, Result,
 };
 
 #[table(name = notification)]
@@ -90,7 +90,11 @@ pub fn add_notification(
 }
 
 #[spacetimedb::reducer]
-pub fn mark_as_read(ctx: &ReducerContext, principal: String, notification_id: u64) -> Result<()> {
+pub fn mark_as_read(
+    ctx: &ReducerContext,
+    principal: String,
+    notification_id: u64,
+) -> Result<(), NotificationError> {
     validate_sender_identity(ctx, YRAL_SSR_TRUSTED_PRINCIPAL)?;
 
     let id = identity_from_principal(Principal::from_text(principal).unwrap());
@@ -108,7 +112,7 @@ pub fn mark_as_read(ctx: &ReducerContext, principal: String, notification_id: u6
                 .map(|n| n.read = true);
             Some(notification)
         })
-        .ok_or(Error::NotificationNotFound(notification_id))?;
+        .ok_or(NotificationError::NotificationNotFound(notification_id))?;
 
     ctx.db.notification().user().update(notification);
 
