@@ -15,7 +15,7 @@ pub struct Notification {
 }
 
 #[derive(SpacetimeType)]
-struct Notifications{
+struct Notifications {
     notification_id: u64,
     payload: NotificationType,
     read: bool,
@@ -62,7 +62,7 @@ pub fn add_notification(
 
     let notifications = ctx.db.notifications().user().find(id);
 
-    match notifications{
+    match notifications {
         Some(mut notifications) => {
             notifications.notifications.push(Notifications {
                 notification_id: notifications.notifications.len() as u64,
@@ -95,22 +95,22 @@ pub fn mark_as_read(ctx: &ReducerContext, principal: String, notification_id: u6
 
     let id = identity_from_principal(Principal::from_text(principal).unwrap());
 
-
     let notification = ctx
         .db
         .notifications()
         .user()
         .find(id)
         .and_then(|mut notification| {
-            notification.notifications.iter_mut().find(|n| n.notification_id == notification_id).map(|n| n.read = true);
+            notification
+                .notifications
+                .iter_mut()
+                .find(|n| n.notification_id == notification_id)
+                .map(|n| n.read = true);
             Some(notification)
         })
         .ok_or(Error::NotificationNotFound(notification_id))?;
 
-    ctx.db
-        .notifications()
-        .user()
-        .update(notification);
+    ctx.db.notifications().user().update(notification);
 
     Ok(())
 }
@@ -123,7 +123,9 @@ pub fn prune_notifications(
     let cut_off = ctx.timestamp - TimeDuration::from_duration(NOTIFICATION_PRUNE_AFTER_SECS);
 
     for mut notification in ctx.db.notifications().iter() {
-        notification.notifications.retain(|n| n.created_at > cut_off);
+        notification
+            .notifications
+            .retain(|n| n.created_at > cut_off);
         ctx.db.notifications().user().update(notification);
     }
 
