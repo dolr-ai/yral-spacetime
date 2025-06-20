@@ -99,22 +99,22 @@ pub fn mark_as_read(
 
     let id = identity_from_principal(Principal::from_text(principal).unwrap());
 
-    let notification = ctx
+    let mut user = ctx
         .db
         .notification()
         .user()
         .find(id)
-        .and_then(|mut notification| {
-            notification
-                .notifications
-                .iter_mut()
-                .find(|n| n.notification_id == notification_id)
-                .map(|n| n.read = true);
-            Some(notification)
-        })
+        .ok_or(NotificationError::Common(Error::InvalidIdentity))?;
+
+    let notification = user
+        .notifications
+        .iter_mut()
+        .find(|n| n.notification_id == notification_id)
         .ok_or(NotificationError::NotificationNotFound(notification_id))?;
 
-    ctx.db.notification().user().update(notification);
+    notification.read = true;
+
+    ctx.db.notification().user().update(user);
 
     Ok(())
 }
