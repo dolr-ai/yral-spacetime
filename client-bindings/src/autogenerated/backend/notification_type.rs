@@ -6,14 +6,15 @@
 #![allow(unused, clippy::all)]
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
+use super::notification_data_type::NotificationData;
+
 #[derive(__lib::ser::Serialize, __lib::de::Deserialize, Clone, PartialEq, Debug)]
 #[sats(crate = __lib)]
-pub struct WithdrawalInfo {
+pub struct Notification {
     pub user: __sdk::Identity,
-    pub withdrawal_amt_24_h: u128,
-    pub last_reset_at: __sdk::Timestamp,
+    pub notifications: Vec<NotificationData>,
 }
 
-impl __sdk::InModule for WithdrawalInfo {
+impl __sdk::InModule for Notification {
     type Module = super::RemoteModule;
 }
