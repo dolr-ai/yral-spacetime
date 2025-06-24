@@ -1,4 +1,5 @@
 use spacetimedb::{table, ReducerContext, Table, TimeDuration, Timestamp};
+use utils::{consts::YRAL_SSR_TRUSTED_PRINCIPAL, validate_sender_identity, Error};
 
 #[table(name = dolr_airdrop_info, public)]
 pub struct DolrAirdropInfo {
@@ -15,8 +16,8 @@ pub fn mark_airdrop_claimed(
     duration: TimeDuration,
     // take from the caller to avoid issues with lag
     now: Timestamp,
-) {
-    // TODO: add identity validation before merging
+) -> Result<(), Error> {
+    validate_sender_identity(ctx, YRAL_SSR_TRUSTED_PRINCIPAL)?;
 
     let Some(mut prev) = ctx
         .db
@@ -30,7 +31,7 @@ pub fn mark_airdrop_claimed(
             last_airdrop_at: now,
         });
 
-        return;
+        return Ok(());
     };
 
     let next_airdrop_available_after = prev.last_airdrop_at + duration;
@@ -43,4 +44,6 @@ pub fn mark_airdrop_claimed(
     }
 
     ctx.db.dolr_airdrop_info().user_principal().update(prev);
+
+    Ok(())
 }
