@@ -17,4 +17,12 @@ pub enum AddToWithdrawError {
     WithdrawalLimitExceeded,
 }
 
+#[derive(Error, Debug)]
+pub enum NotificationError {
+    #[error("notification not found for notification id: {0}")]
+    NotificationNotFound(u64),
+    #[error(transparent)]
+    Common(#[from] Error),
+}
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;

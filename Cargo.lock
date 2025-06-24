@@ -273,6 +273,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "canisters"
+version = "0.1.0"
+dependencies = [
+ "spacetimedb",
+ "yral-spacetime-utils",
+]
+
+[[package]]
 name = "cc"
 version = "1.2.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2145,6 +2153,7 @@ version = "0.1.0"
 dependencies = [
  "candid",
  "log",
+ "serde",
  "spacetimedb",
  "yral-spacetime-utils",
 ]
