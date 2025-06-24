@@ -6,17 +6,14 @@
 #![allow(unused, clippy::all)]
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
-use super::notification_type_type::NotificationType;
-
 #[derive(__lib::ser::Serialize, __lib::de::Deserialize, Clone, PartialEq, Debug)]
 #[sats(crate = __lib)]
-pub struct NotificationData {
-    pub notification_id: u64,
-    pub payload: NotificationType,
-    pub read: bool,
-    pub created_at: __sdk::Timestamp,
+pub struct DolrAirdropInfo {
+    pub user_principal: String,
+    pub airdrop_count_within_duration: u64,
+    pub last_airdrop_at: __sdk::Timestamp,
 }
 
-impl __sdk::InModule for NotificationData {
+impl __sdk::InModule for DolrAirdropInfo {
     type Module = super::RemoteModule;
 }
