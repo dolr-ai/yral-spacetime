@@ -1,5 +1,5 @@
 use spacetimedb::{table, ReducerContext, Table, TimeDuration, Timestamp};
-use utils::{consts::YRAL_SSR_TRUSTED_PRINCIPAL, validate_sender_identity, Error};
+use utils::{consts::YRAL_SSR_TRUSTED_PRINCIPAL, validate_sender_identity, DolrAirdropError};
 
 #[table(name = dolr_airdrop_info, public)]
 pub struct DolrAirdropInfo {
@@ -16,23 +16,36 @@ pub fn mark_airdrop_claimed(
     duration: TimeDuration,
     // take from the caller to avoid issues with lag
     now: Timestamp,
-) -> Result<(), Error> {
+    // last airdrop timestamp as read by the caller
+    last_airdrop_at: Option<Timestamp>,
+) -> Result<(), DolrAirdropError> {
     validate_sender_identity(ctx, YRAL_SSR_TRUSTED_PRINCIPAL)?;
 
-    let Some(mut prev) = ctx
+    let prev = ctx
         .db
         .dolr_airdrop_info()
         .user_principal()
-        .find(user_principal.clone())
-    else {
-        ctx.db.dolr_airdrop_info().insert(DolrAirdropInfo {
-            user_principal,
-            airdrop_count_within_duration: 1,
-            last_airdrop_at: now,
-        });
+        .find(user_principal.clone());
 
-        return Ok(());
+    let (mut prev, last_airdrop_at) = match (prev, last_airdrop_at) {
+        (Some(..), None) | (None, Some(..)) => {
+            return Err(DolrAirdropError::LastAirdropTimeMismatch)
+        }
+        (None, None) => {
+            ctx.db.dolr_airdrop_info().insert(DolrAirdropInfo {
+                user_principal,
+                airdrop_count_within_duration: 1,
+                last_airdrop_at: now,
+            });
+
+            return Ok(());
+        }
+        (Some(prev), Some(last_airdrop_at)) => (prev, last_airdrop_at),
     };
+
+    if last_airdrop_at != prev.last_airdrop_at {
+        return Err(DolrAirdropError::LastAirdropTimeMismatch);
+    }
 
     let next_airdrop_available_after = prev.last_airdrop_at + duration;
 

@@ -71,6 +71,7 @@ pub enum Reducer {
         user_principal: String,
         duration: __sdk::TimeDuration,
         now: __sdk::Timestamp,
+        last_airdrop_at: Option<__sdk::Timestamp>,
     },
     MarkAsRead {
         principal: String,
