@@ -25,4 +25,12 @@ pub enum NotificationError {
     Common(#[from] Error),
 }
 
+#[derive(Error, Debug)]
+pub enum SatsAirdropError {
+    #[error("Mismatched last airdrop time")]
+    LastAirdropTimeMismatch,
+    #[error(transparent)]
+    Common(#[from] Error),
+}
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;
