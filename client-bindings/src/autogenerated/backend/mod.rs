@@ -13,6 +13,7 @@ pub mod dolr_airdrop_info_type;
 pub mod liked_payload_type;
 pub mod mark_airdrop_claimed_reducer;
 pub mod mark_as_read_reducer;
+pub mod mark_sats_airdrop_claimed_reducer;
 pub mod notification_data_type;
 pub mod notification_prune_schedule_table;
 pub mod notification_prune_schedule_type;
@@ -20,6 +21,8 @@ pub mod notification_table;
 pub mod notification_type;
 pub mod notification_type_type;
 pub mod prune_notifications_reducer;
+pub mod sats_airdrop_info_table;
+pub mod sats_airdrop_info_type;
 pub mod video_upload_payload_type;
 pub mod withdrawal_info_table;
 pub mod withdrawal_info_type;
@@ -37,6 +40,10 @@ pub use mark_airdrop_claimed_reducer::{
     mark_airdrop_claimed, set_flags_for_mark_airdrop_claimed, MarkAirdropClaimedCallbackId,
 };
 pub use mark_as_read_reducer::{mark_as_read, set_flags_for_mark_as_read, MarkAsReadCallbackId};
+pub use mark_sats_airdrop_claimed_reducer::{
+    mark_sats_airdrop_claimed, set_flags_for_mark_sats_airdrop_claimed,
+    MarkSatsAirdropClaimedCallbackId,
+};
 pub use notification_data_type::NotificationData;
 pub use notification_prune_schedule_table::*;
 pub use notification_prune_schedule_type::NotificationPruneSchedule;
@@ -46,6 +53,8 @@ pub use notification_type_type::NotificationType;
 pub use prune_notifications_reducer::{
     prune_notifications, set_flags_for_prune_notifications, PruneNotificationsCallbackId,
 };
+pub use sats_airdrop_info_table::*;
+pub use sats_airdrop_info_type::SatsAirdropInfo;
 pub use video_upload_payload_type::VideoUploadPayload;
 pub use withdrawal_info_table::*;
 pub use withdrawal_info_type::WithdrawalInfo;
@@ -76,6 +85,11 @@ pub enum Reducer {
         principal: String,
         notification_id: u64,
     },
+    MarkSatsAirdropClaimed {
+        user_principal: String,
+        now: __sdk::Timestamp,
+        last_airdrop_at: Option<__sdk::Timestamp>,
+    },
     PruneNotifications {
         schedule: NotificationPruneSchedule,
     },
@@ -92,6 +106,7 @@ impl __sdk::Reducer for Reducer {
             Reducer::AddToWithdrawAmount { .. } => "add_to_withdraw_amount",
             Reducer::MarkAirdropClaimed { .. } => "mark_airdrop_claimed",
             Reducer::MarkAsRead { .. } => "mark_as_read",
+            Reducer::MarkSatsAirdropClaimed { .. } => "mark_sats_airdrop_claimed",
             Reducer::PruneNotifications { .. } => "prune_notifications",
         }
     }
@@ -119,6 +134,12 @@ impl TryFrom<__ws::ReducerCallInfo<__ws::BsatnFormat>> for Reducer {
                 )?
                 .into(),
             ),
+            "mark_sats_airdrop_claimed" => {
+                Ok(__sdk::parse_reducer_args::<
+                    mark_sats_airdrop_claimed_reducer::MarkSatsAirdropClaimedArgs,
+                >("mark_sats_airdrop_claimed", &value.args)?
+                .into())
+            }
             "prune_notifications" => Ok(__sdk::parse_reducer_args::<
                 prune_notifications_reducer::PruneNotificationsArgs,
             >("prune_notifications", &value.args)?
@@ -140,6 +161,7 @@ pub struct DbUpdate {
     dolr_airdrop_info: __sdk::TableUpdate<DolrAirdropInfo>,
     notification: __sdk::TableUpdate<Notification>,
     notification_prune_schedule: __sdk::TableUpdate<NotificationPruneSchedule>,
+    sats_airdrop_info: __sdk::TableUpdate<SatsAirdropInfo>,
     withdrawal_info: __sdk::TableUpdate<WithdrawalInfo>,
 }
 
@@ -158,6 +180,9 @@ impl TryFrom<__ws::DatabaseUpdate<__ws::BsatnFormat>> for DbUpdate {
                 "notification_prune_schedule" => db_update.notification_prune_schedule.append(
                     notification_prune_schedule_table::parse_table_update(table_update)?,
                 ),
+                "sats_airdrop_info" => db_update
+                    .sats_airdrop_info
+                    .append(sats_airdrop_info_table::parse_table_update(table_update)?),
                 "withdrawal_info" => db_update
                     .withdrawal_info
                     .append(withdrawal_info_table::parse_table_update(table_update)?),
@@ -199,6 +224,9 @@ impl __sdk::DbUpdate for DbUpdate {
                 &self.notification_prune_schedule,
             )
             .with_updates_by_pk(|row| &row.scheduled_id);
+        diff.sats_airdrop_info = cache
+            .apply_diff_to_table::<SatsAirdropInfo>("sats_airdrop_info", &self.sats_airdrop_info)
+            .with_updates_by_pk(|row| &row.user_principal);
         diff.withdrawal_info = cache
             .apply_diff_to_table::<WithdrawalInfo>("withdrawal_info", &self.withdrawal_info)
             .with_updates_by_pk(|row| &row.user);
@@ -214,6 +242,7 @@ pub struct AppliedDiff<'r> {
     dolr_airdrop_info: __sdk::TableAppliedDiff<'r, DolrAirdropInfo>,
     notification: __sdk::TableAppliedDiff<'r, Notification>,
     notification_prune_schedule: __sdk::TableAppliedDiff<'r, NotificationPruneSchedule>,
+    sats_airdrop_info: __sdk::TableAppliedDiff<'r, SatsAirdropInfo>,
     withdrawal_info: __sdk::TableAppliedDiff<'r, WithdrawalInfo>,
 }
 
@@ -240,6 +269,11 @@ impl<'r> __sdk::AppliedDiff<'r> for AppliedDiff<'r> {
         callbacks.invoke_table_row_callbacks::<NotificationPruneSchedule>(
             "notification_prune_schedule",
             &self.notification_prune_schedule,
+            event,
+        );
+        callbacks.invoke_table_row_callbacks::<SatsAirdropInfo>(
+            "sats_airdrop_info",
+            &self.sats_airdrop_info,
             event,
         );
         callbacks.invoke_table_row_callbacks::<WithdrawalInfo>(
@@ -825,6 +859,7 @@ impl __sdk::SpacetimeModule for RemoteModule {
         dolr_airdrop_info_table::register_table(client_cache);
         notification_table::register_table(client_cache);
         notification_prune_schedule_table::register_table(client_cache);
+        sats_airdrop_info_table::register_table(client_cache);
         withdrawal_info_table::register_table(client_cache);
     }
 }
