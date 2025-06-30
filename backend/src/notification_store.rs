@@ -10,8 +10,13 @@ use utils::{
 #[table(name = notification, public)]
 pub struct Notification {
     #[primary_key]
+    #[index(btree)]
     user: Identity,
-    notifications: Vec<NotificationData>,
+    #[auto_inc]
+    notification_id: u64,
+    payload: NotificationType,
+    read: bool,
+    created_at: Timestamp,
 }
 
 #[derive(SpacetimeType)]
@@ -60,31 +65,14 @@ pub fn add_notification(
 
     let now = ctx.timestamp;
 
-    let notifications = ctx.db.notification().user().find(id);
-
-    match notifications {
-        Some(mut notifications) => {
-            notifications.notifications.push(NotificationData {
-                notification_id: notifications.notifications.len() as u64,
-                payload,
-                created_at: now,
-                read: false,
-            });
-            ctx.db.notification().user().update(notifications);
-        }
-        None => {
-            let default_notification = Notification {
-                user: id,
-                notifications: vec![NotificationData {
-                    notification_id: 0,
-                    payload,
-                    created_at: now,
-                    read: false,
-                }],
-            };
-            ctx.db.notification().insert(default_notification);
-        }
-    }
+    let notification = Notification {
+        user: id,
+        notification_id: 0,
+        payload,
+        created_at: now,
+        read: false,
+    };
+    ctx.db.notification().insert(notification);
 
     Ok(())
 }
@@ -99,22 +87,15 @@ pub fn mark_as_read(
 
     let id = identity_from_principal(Principal::from_text(principal).unwrap());
 
-    let mut user = ctx
+    let mut notification = ctx
         .db
         .notification()
         .user()
         .find(id)
-        .ok_or(NotificationError::Common(Error::InvalidIdentity))?;
-
-    let notification = user
-        .notifications
-        .iter_mut()
-        .find(|n| n.notification_id == notification_id)
         .ok_or(NotificationError::NotificationNotFound(notification_id))?;
 
     notification.read = true;
-
-    ctx.db.notification().user().update(user);
+    ctx.db.notification().user().update(notification);
 
     Ok(())
 }
@@ -126,11 +107,10 @@ pub fn prune_notifications(
 ) -> Result<()> {
     let cut_off = ctx.timestamp - TimeDuration::from_duration(NOTIFICATION_PRUNE_AFTER_SECS);
 
-    for mut notification in ctx.db.notification().iter() {
-        notification
-            .notifications
-            .retain(|n| n.created_at > cut_off);
-        ctx.db.notification().user().update(notification);
+    for notification in ctx.db.notification().iter() {
+        if notification.created_at < cut_off {
+            ctx.db.notification().delete(notification);
+        }
     }
 
     Ok(())

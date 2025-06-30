@@ -13,7 +13,6 @@ pub mod dolr_airdrop_info_type;
 pub mod liked_payload_type;
 pub mod mark_airdrop_claimed_reducer;
 pub mod mark_as_read_reducer;
-pub mod notification_data_type;
 pub mod notification_prune_schedule_table;
 pub mod notification_prune_schedule_type;
 pub mod notification_table;
@@ -37,7 +36,6 @@ pub use mark_airdrop_claimed_reducer::{
     mark_airdrop_claimed, set_flags_for_mark_airdrop_claimed, MarkAirdropClaimedCallbackId,
 };
 pub use mark_as_read_reducer::{mark_as_read, set_flags_for_mark_as_read, MarkAsReadCallbackId};
-pub use notification_data_type::NotificationData;
 pub use notification_prune_schedule_table::*;
 pub use notification_prune_schedule_type::NotificationPruneSchedule;
 pub use notification_table::*;

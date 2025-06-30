@@ -4,8 +4,8 @@
 // This was generated using spacetimedb cli version 1.2.0 (commit fb41e50eb73573b70eea532aeb6158eaac06fae0).
 
 #![allow(unused, clippy::all)]
-use super::notification_data_type::NotificationData;
 use super::notification_type::Notification;
+use super::notification_type_type::NotificationType;
 use spacetimedb_sdk::__codegen::{self as __sdk, __lib, __sats, __ws};
 
 /// Table handle for the table `notification`.
