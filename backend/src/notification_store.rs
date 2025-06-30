@@ -7,7 +7,7 @@ use utils::{
     identity_from_principal, validate_sender_identity, Error, NotificationError, Result,
 };
 
-#[table(name = notification)]
+#[table(name = notification, public)]
 pub struct Notification {
     #[primary_key]
     user: Identity,
