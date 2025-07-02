@@ -3,3 +3,4 @@
 pub mod backend;
 pub mod canisters;
 pub mod dedup_index;
+pub mod yral;

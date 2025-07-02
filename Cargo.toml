@@ -1,5 +1,5 @@
 [workspace]
-members = ["backend", "dedup-index", "client-bindings", "utils", "canisters"]
+members = ["backend", "dedup-index", "client-bindings", "utils", "canisters", "yral"]
 resolver = "2"
 
 [workspace.dependencies]
